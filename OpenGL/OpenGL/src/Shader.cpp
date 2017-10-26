@@ -10,7 +10,6 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 	/* const char* src = &source[0]; - could also write code like this
 	because string API does provide us c string prefer write upper code
 	*/
-
 	glShaderSource(id, 1, &src, nullptr); // specifies the source of our shader 
 	// id, count : how many source codes are we specifying, double pointer, length 
 	// length : If you don't want to use the whole string or anything - pass nullptr
@@ -129,7 +128,7 @@ int main(void)
 		"\n"
 		"layout(location = 0) out vec4 color;\n"
 		// don't need layout stuff, do need to do remember is fragment shader should be outputting a color
-		// can keep layout(location == 0), not necessary it will be 0 by default anyway
+		// can keep layout(location = 0), not necessary it will be 0 by default anyway
 		"\n"
 		"void main()\n"
 		"{\n"
