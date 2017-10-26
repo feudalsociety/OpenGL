@@ -18,7 +18,6 @@ int main(void)
 		return -1;
 	}
 
-
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
@@ -35,7 +34,6 @@ int main(void)
 
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
-
 	glBindBuffer(GL_ARRAY_BUFFER, buffer); // with the buffer bound
 	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 	// copying position into buffer (by specifying pointer to them and how big they are)
