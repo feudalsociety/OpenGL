@@ -16,7 +16,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 										  // length : If you don't want to use the whole string or anything - pass nullptr
 	glCompileShader(id); // specify which shader want to compile 
 
-						 // TODO : Error handling
+	// TODO : Error handling
 	int result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	if (result == GL_FALSE) // GL_FALSE == 0, if(!result) (alt + f12)
