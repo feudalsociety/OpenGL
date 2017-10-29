@@ -97,9 +97,9 @@ int main(void)
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
 	float positions[6] = {
-		0.5f, -0.5f,
-		0.0f,  0.5f,
-		0.5f, -0.5f
+		-0.5f, -0.5f,
+		 0.0f,  0.5f,
+		 0.5f, -0.5f
 	};
 
 	unsigned int buffer;
@@ -112,7 +112,7 @@ int main(void)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
 	// write our source code
-	std::string vertexshader =
+	std::string vertexShader =
 		"#version 330 core\n"
 		"\n"
 		"layout(location = 0) in vec4 position;\n" // specify actual attribute
@@ -123,7 +123,7 @@ int main(void)
 		"}\n";
 	// another reason why defining these kind of shaders in files is a lot better (next episode)
 
-	std::string fragmentshader =
+	std::string fragmentShader =
 		"#version 330 core\n"
 		"\n"
 		"layout(location = 0) out vec4 color;\n"
@@ -135,7 +135,7 @@ int main(void)
 		"	color = vec4(1.0, 0.0, 0.0, 1.0);\n" // (r,g,b,a)
 		"}\n";
 
-	unsigned int shader = CreateShader(vertexshader, fragmentshader);
+	unsigned int shader = CreateShader(vertexShader, fragmentShader);
 	glUseProgram(shader); // bound our shader
 
 	while (!glfwWindowShouldClose(window))
