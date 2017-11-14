@@ -6,6 +6,52 @@
 #include <string> // getline
 #include <sstream> // stringstream
 
+// should wrapped in ()
+#define ASSERT(x) if(!(x)) __debugbreak();
+// ignore newline char, continue writing this macro
+// make sure when you put the backslash should not put space after otherwise you still got the newline char
+#define GLCall(x) GLClearError();\
+	x;\
+	ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+// not going to put semicolon because we don't need to, after we call GLCall we'll endup with semicolon
+// # turns into a string
+// __FILE__ unlike __debugbreak this is not an intrinsic it should be support by all compiler
+
+/*
+// Print an all of the errors that do occur after the function call
+static void GLCheckError()
+{
+	while (GLenum error = glGetError()) // run until error gets '0'
+	{
+		std::cout << "[OpenGL Error] (" << error << ")" << std::endl;
+	}
+	// glGetError returns GLenum which is unsigned int
+	// but because this is closely tied, use GLenum here
+}
+*/
+
+static void GLClearError() 
+{
+	while (glGetError() != GL_NO_ERROR);
+	// while(!glGetError()) 
+	// don't need body, don't care about error codes, just want to clear all errors
+}
+
+static bool GLLogCall(const char * function, const char * file, int line)
+{
+	while (GLenum error = glGetError()) // might have question of validity of loop - jsut kind of demonstrate for now
+	{
+		std::cout << "[OpenGL Error] (" << error << "): " << function << 
+			" " << file << ":" << line << std::endl;
+		return false;
+	}
+	return true;
+}
+// function : name of the function we are trying to call
+// file : c++ source file where this function was actually called from
+
+
+
 struct ShaderProgramSource
 {
 	std::string VertexSource;
@@ -14,7 +60,7 @@ struct ShaderProgramSource
 
 static ShaderProgramSource ParseShader(const std::string& filepath)
 {
-	std::ifstream stream(filepath); // input file stream, that already opens the file
+	std::ifstream stream(filepath); 
 
 	enum class ShaderType
 	{
@@ -23,24 +69,23 @@ static ShaderProgramSource ParseShader(const std::string& filepath)
 
 	std::string line;
 	std::stringstream ss[2];
-	ShaderType type = ShaderType::NONE; // current shader type
+	ShaderType type = ShaderType::NONE;
 
-	while (getline(stream, line)) // while getline is valid, which means there is still more lines to read 
+	while (getline(stream, line)) 
 	{
-		if (line.find("#shader") != std::string::npos) // if that actual line contains our shader (custom syntax token)
-													   // std::string::npos = invalid string position, find will return actual string position returs a size_t
+		if (line.find("#shader") != std::string::npos) 
 		{
 			if (line.find("vertex") != std::string::npos)
-				type = ShaderType::VERTEX; // set mode(or mode) to vertex
+				type = ShaderType::VERTEX; 
 			else if (line.find("fragment") != std::string::npos)
-				type = ShaderType::FRAGMENT; // set mode(or mode) to fragment
+				type = ShaderType::FRAGMENT; 
 		}
 		else
 		{
-			ss[(int)type] << line << '\n'; // add line into that string stream followed by newline
+			ss[(int)type] << line << '\n'; 
 		}
 	}
-	return { ss[0].str(), ss[1].str() }; // str() : give us string back from the stringstream
+	return { ss[0].str(), ss[1].str() }; 
 }
 
 
@@ -71,6 +116,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
 	unsigned int program = glCreateProgram();
+	// GLCall(unsigned int program = glCreateProgram());
 	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
 	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
@@ -112,8 +158,8 @@ int main(void)
 		 0.5f,  0.5f, // 2
 
 		// 0.5f,  0.5f,
-		-0.5f,  0.5f, // 3
-		//-0.5f, -0.5f
+	    -0.5f,  0.5f, // 3
+		// -0.5f, -0.5f
 	};
 	unsigned int indices[] = { // index buffer 
 		0, 1, 2,
@@ -147,14 +193,18 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
+		// draw call
 
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); 
-		// 6 is number of indices not the number of vertices we are drawing
-		// type : type of data in index buffer 
-		// pointer to that index buffer : currently bound
+		/*
+		GLClearError(); // clear error first 
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		// GL_UNSIGNED_INT => GL_INT : all we get black screen, in console nothing get printed
+		//GLCheckError(); // and then check the errors from last function call
+		AASERT(GLLogCall());
+		// if GLLogCall return false it will break debugger
+		*/
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
 
-		// GL_UNSIGNED_INT => GL_SIGNED_INT : we got black screen
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
