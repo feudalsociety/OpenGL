@@ -6,50 +6,27 @@
 #include <string> // getline
 #include <sstream> // stringstream
 
-// should wrapped in ()
 #define ASSERT(x) if(!(x)) __debugbreak();
-// ignore newline char, continue writing this macro
-// make sure when you put the backslash should not put space after otherwise you still got the newline char
 #define GLCall(x) GLClearError();\
 	x;\
 	ASSERT(GLLogCall(#x, __FILE__, __LINE__));
-// not going to put semicolon because we don't need to, after we call GLCall we'll endup with semicolon
-// # turns into a string
-// __FILE__ unlike __debugbreak this is not an intrinsic it should be support by all compiler
 
-/*
-// Print an all of the errors that do occur after the function call
-static void GLCheckError()
-{
-	while (GLenum error = glGetError()) // run until error gets '0'
-	{
-		std::cout << "[OpenGL Error] (" << error << ")" << std::endl;
-	}
-	// glGetError returns GLenum which is unsigned int
-	// but because this is closely tied, use GLenum here
-}
-*/
 
-static void GLClearError() 
+static void GLClearError()
 {
 	while (glGetError() != GL_NO_ERROR);
-	// while(!glGetError()) 
-	// don't need body, don't care about error codes, just want to clear all errors
 }
 
 static bool GLLogCall(const char * function, const char * file, int line)
 {
-	while (GLenum error = glGetError()) // might have question of validity of loop - jsut kind of demonstrate for now
+	while (GLenum error = glGetError())
 	{
-		std::cout << "[OpenGL Error] (" << error << "): " << function << 
+		std::cout << "[OpenGL Error] (" << error << "): " << function <<
 			" " << file << ":" << line << std::endl;
 		return false;
 	}
 	return true;
 }
-// function : name of the function we are trying to call
-// file : c++ source file where this function was actually called from
-
 
 
 struct ShaderProgramSource
@@ -60,7 +37,7 @@ struct ShaderProgramSource
 
 static ShaderProgramSource ParseShader(const std::string& filepath)
 {
-	std::ifstream stream(filepath); 
+	std::ifstream stream(filepath);
 
 	enum class ShaderType
 	{
@@ -71,21 +48,21 @@ static ShaderProgramSource ParseShader(const std::string& filepath)
 	std::stringstream ss[2];
 	ShaderType type = ShaderType::NONE;
 
-	while (getline(stream, line)) 
+	while (getline(stream, line))
 	{
-		if (line.find("#shader") != std::string::npos) 
+		if (line.find("#shader") != std::string::npos)
 		{
 			if (line.find("vertex") != std::string::npos)
-				type = ShaderType::VERTEX; 
+				type = ShaderType::VERTEX;
 			else if (line.find("fragment") != std::string::npos)
-				type = ShaderType::FRAGMENT; 
+				type = ShaderType::FRAGMENT;
 		}
 		else
 		{
-			ss[(int)type] << line << '\n'; 
+			ss[(int)type] << line << '\n';
 		}
 	}
-	return { ss[0].str(), ss[1].str() }; 
+	return { ss[0].str(), ss[1].str() };
 }
 
 
@@ -116,7 +93,6 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
 	unsigned int program = glCreateProgram();
-	// GLCall(unsigned int program = glCreateProgram());
 	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
 	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
@@ -147,6 +123,9 @@ int main(void)
 
 	glfwMakeContextCurrent(window);
 
+	// limiting our frame rates
+	glfwSwapInterval(1); 
+
 	if (glewInit() != GLEW_OK)
 		std::cout << "Error!" << std::endl;
 
@@ -154,18 +133,17 @@ int main(void)
 
 	float positions[] = {
 		-0.5f, -0.5f, // 0
-		 0.5f, -0.5f, // 1
-		 0.5f,  0.5f, // 2
+		0.5f, -0.5f, // 1
+		0.5f,  0.5f, // 2
 
-		// 0.5f,  0.5f,
-	    -0.5f,  0.5f, // 3
+	    // 0.5f,  0.5f,
+	   -0.5f,  0.5f, // 3
 		// -0.5f, -0.5f
 	};
 	unsigned int indices[] = { // index buffer 
 		0, 1, 2,
 		2, 3, 0
 	};
-	// any index buffer has to be made up of unsigned integer
 
 	unsigned int buffer;
 	GLCall(glGenBuffers(1, &buffer));
@@ -175,35 +153,36 @@ int main(void)
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
-	unsigned int ibo; // index buffer object
+	unsigned int ibo;
 	GLCall(glGenBuffers(1, &ibo));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 
-	//std::cout << "VERTEX" << std::endl;
-	//std::cout << source.VertexSource << std::endl;
-	//std::cout << "FRAGEMNT" << std::endl;
-	//std::cout << source.FragmentSource << std::endl;
-
 	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 	GLCall(glUseProgram(shader));
 
+	// retrieve the location of the variable
+	GLCall(int location = glGetUniformLocation(shader, "u_Color")); 
+	// make sure spell in exact same case as you do with actual variable name in your shader
+	ASSERT(location != -1); // if location is -1, it means could not find uniform
+	GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));
+
+	float r = 0.0f;
+	float increment = 0.05f;
 	while (!glfwWindowShouldClose(window))
 	{
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
+		
 		// draw call
+		GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
-		/*
-		GLClearError(); // clear error first 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-		// GL_UNSIGNED_INT => GL_INT : all we get black screen, in console nothing get printed
-		//GLCheckError(); // and then check the errors from last function call
-		AASERT(GLLogCall());
-		// if GLLogCall return false it will break debugger
-		*/
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+		if (r > 1.0f) increment = -0.05f;
+		else if (r < 0.0f) increment = 0.05f;
+
+		r += increment;
 
 		glfwSwapBuffers(window);
 

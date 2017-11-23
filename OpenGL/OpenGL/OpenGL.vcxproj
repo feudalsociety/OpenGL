@@ -22,7 +22,7 @@
     <None Include="res\shaders\Basic.shader" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\DealingErrors.cpp" />
+    <ClCompile Include="src\uniforms.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
